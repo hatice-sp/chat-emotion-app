@@ -1,0 +1,11 @@
+{
+  "Version": 1,
+  "Hash": "B3AGM/VwIr8BU0LXbgCr4XtVkNbf43lGI2REaMEP+aI=",
+  "Source": "ChatEmotionBackend",
+  "BasePath": "_content/ChatEmotionBackend",
+  "Mode": "Default",
+  "ManifestType": "Build",
+  "ReferencedProjectsConfiguration": [],
+  "DiscoveryPatterns": [],
+  "Assets": []
+}
