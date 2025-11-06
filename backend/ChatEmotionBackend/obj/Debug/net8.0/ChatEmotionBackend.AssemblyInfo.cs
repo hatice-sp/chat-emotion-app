@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ChatEmotionBackend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+bba506be3b6cfbb6dfe37655108f4f23a19adac8")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f31a531f9321bfa0844bb6d7d6c1c2697c92836f")]
 [assembly: System.Reflection.AssemblyProductAttribute("ChatEmotionBackend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ChatEmotionBackend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
