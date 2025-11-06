@@ -4,23 +4,27 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container
-builder.Services.AddControllers(); // Controller'ları çalıştırmak için
+builder.Services.AddControllers();
 
-// SQLite DB
+// ✅ SQLite veritabanı (dosya proje dizininde saklanacak)
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=chat.db"));
 
-// HTTP Client Factory (Python servisine çağrı yapabilmek için)
+// ✅ Python servisine istek atmak için
 builder.Services.AddHttpClient();
 
-// CORS ayarı (React frontend izinli)
+// ✅ CORS ayarı (Render + Vercel izinli)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // React frontend URL
-              .AllowAnyHeader()
-              .AllowAnyMethod();
+        policy
+            .WithOrigins(
+                "http://localhost:3000",                // yerel geliştirme
+                "https://chat-emotion-frontend.vercel.app" // Vercel'deki domain (senin domaininle değiştir)
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
     });
 });
 
@@ -29,21 +33,25 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
+// Swagger sadece development’ta çalışsın
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// HTTPS yönlendirmesini devre dışı bırakıyoruz (Render HTTP kullanır)
 app.UseHttpsRedirection();
 
-// CORS middleware’i UseAuthorization’dan önce ekleyin
+// CORS aktif
 app.UseCors("AllowReactApp");
 
 app.UseAuthorization();
 
-// Controller'ları etkinleştir
 app.MapControllers();
+
+// ✅ Render’ın PORT değişkenine göre dinleme
+var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
+app.Urls.Add($"http://*:{port}");
 
 app.Run();

@@ -17,7 +17,6 @@ C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\Cha
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\ChatEmotionBackend.csproj.CoreCompileInputs.cache
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\ChatEmotionBackend.MvcApplicationPartsAssemblyInfo.cs
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\ChatEmotionBackend.MvcApplicationPartsAssemblyInfo.cache
-C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\ChatEmotionBackend.sourcelink.json
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\staticwebassets.build.json
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\staticwebassets.development.json
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\staticwebassets\msbuild.ChatEmotionBackend.Microsoft.AspNetCore.StaticWebAssets.props
