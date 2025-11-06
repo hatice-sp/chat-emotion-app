@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5128/api/Message";
+const API_URL = "https://chat-emotion-app-ox9j.onrender.com/analyze";
 
 function App() {
   const [messages, setMessages] = useState([]);
