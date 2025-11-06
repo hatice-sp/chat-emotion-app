@@ -21,7 +21,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:3000",                // yerel geliştirme
-                "https://chat-emotion-frontend.vercel.app" // Vercel'deki domain (senin domaininle değiştir)
+                "https://chat-emotion-frontend.vercel.app" // Vercel domain’in
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
@@ -40,18 +40,14 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// HTTPS yönlendirmesini devre dışı bırakıyoruz (Render HTTP kullanır)
+
 app.UseHttpsRedirection();
 
-// CORS aktif
 app.UseCors("AllowReactApp");
-
 app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ Render’ın PORT değişkenine göre dinleme
+//Renderın verdiği PORT değişkeni
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Urls.Add($"http://*:{port}");
-
-app.Run();
+app.Run($"http://0.0.0.0:{port}");

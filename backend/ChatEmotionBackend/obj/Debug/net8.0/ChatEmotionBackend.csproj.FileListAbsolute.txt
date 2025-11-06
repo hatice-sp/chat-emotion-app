@@ -157,3 +157,4 @@ C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\bin\Debug\net8.0\run
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\bin\Debug\net8.0\runtimes\win-x64\native\e_sqlite3.dll
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\bin\Debug\net8.0\runtimes\win-x86\native\e_sqlite3.dll
 C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\bin\Debug\net8.0\runtimes\browser\lib\net8.0\System.Text.Encodings.Web.dll
+C:\Users\Hatice\chat-emotion-app\backend\ChatEmotionBackend\obj\Debug\net8.0\ChatEmotionBackend.sourcelink.json
