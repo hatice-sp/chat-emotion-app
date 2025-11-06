@@ -35,9 +35,10 @@ namespace ChatEmotionBackend.Controllers
             {
                 // Python microservice'e POST at
                 var response = await _httpClient.PostAsJsonAsync(
-                    "http://127.0.0.1:5000/analyze",  // Python servis URL
-                    new { text = message.Text }
-                );
+     "https://chat-emotion-app-ox9j.onrender.com/analyze",
+     new { text = message.Text }
+ );
+
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -64,7 +65,8 @@ namespace ChatEmotionBackend.Controllers
         public IActionResult GetMessages()
         {
             var messages = _context.Messages
-                .Select(m => new {
+                .Select(m => new
+                {
                     m.Id,
                     m.UserId,
                     m.Text,
@@ -76,10 +78,10 @@ namespace ChatEmotionBackend.Controllers
         [HttpDelete("reset")]
         public async Task<IActionResult> ResetDatabase()
         {
-          var messages = _context.Messages.ToList();
-         _context.Messages.RemoveRange(messages);
-          await _context.SaveChangesAsync();
-          return Ok("Veritabanı temizlendi.");
+            var messages = _context.Messages.ToList();
+            _context.Messages.RemoveRange(messages);
+            await _context.SaveChangesAsync();
+            return Ok("Veritabanı temizlendi.");
         }
 
     }
