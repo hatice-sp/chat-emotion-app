@@ -164,9 +164,9 @@ def analyze():
 
 if __name__ == "__main__":
     print("\n" + "="*60)
-    print("🚀 Flask App Started!")
+    print(" Flask App Started!")
     print("="*60)
-    print("\n📍 Available Routes:")
+    print("\n Available Routes:")
     print("  GET  http://127.0.0.1:5000/")
     print("  POST http://127.0.0.1:5000/analyze")
     print("\n" + "="*60 + "\n")
