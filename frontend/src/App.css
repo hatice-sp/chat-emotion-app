@@ -1,0 +1,137 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f3f4f6;
+  color: #1f2937;
+}
+
+.app-container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  height: 90vh;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.user-selector {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.user-selector button {
+  padding: 8px 15px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  color: white;
+  font-weight: bold;
+  transition: transform 0.2s;
+}
+
+.user-selector button:hover {
+  transform: scale(1.1);
+}
+
+.user-selector .active {
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.2);
+}
+
+.chat-area {
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  overflow-y: auto;
+  flex: 1;
+  /* Yükseklik tüm boşluğu kaplasın */
+  margin-bottom: 20px;
+}
+
+.message-item {
+  border-bottom: 1px solid #e5e7eb;
+  padding: 10px 0;
+}
+
+.message-item:last-child {
+  border-bottom: none;
+}
+
+.message-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.message-header strong {
+  font-weight: bold;
+}
+
+.message-text {
+  margin-bottom: 5px;
+}
+
+.message-sentiment {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.input-area {
+  display: flex;
+  gap: 10px;
+}
+
+.input-area input {
+  flex: 1;
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  font-size: 1rem;
+}
+
+.input-area input:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
+.input-area button {
+  padding: 10px 20px;
+  background-color: #3b82f6;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.input-area button:hover:not(:disabled) {
+  background-color: #2563eb;
+}
+
+.input-area button:disabled {
+  background-color: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #b91c1c;
+  background: #fee2e2;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 15px;
+  text-align: center;
+}
