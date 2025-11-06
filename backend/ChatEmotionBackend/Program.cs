@@ -10,10 +10,10 @@ builder.Services.AddControllers();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite("Data Source=chat.db"));
 
-// ✅ Python servisine istek atmak için
+// Python servisine istek atmak için
 builder.Services.AddHttpClient();
 
-// ✅ CORS ayarı (Render + Vercel izinli)
+// CORS ayarı (Render + Vercel izinli)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -21,12 +21,13 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:3000",                // yerel geliştirme
-                "https://chat-emotion-frontend.vercel.app" // Vercel domain’in
+                "https://chat-emotion-app.vercel.app"   // Vercel domain’in
             )
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
 });
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
