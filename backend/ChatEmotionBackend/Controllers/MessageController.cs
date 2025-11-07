@@ -33,7 +33,7 @@ namespace ChatEmotionBackend.Controllers
         {
             if (string.IsNullOrEmpty(request.Text) || request.UserId == 0)
             {
-                _logger.LogWarning("❌ Geçersiz istek: Text veya UserId eksik");
+                _logger.LogWarning(" Geçersiz istek: Text veya UserId eksik");
                 return BadRequest(new { error = "Geçersiz mesaj veya kullanıcı." });
             }
 
@@ -41,73 +41,51 @@ namespace ChatEmotionBackend.Controllers
             {
                 UserId = request.UserId,
                 Text = request.Text,
-                Sentiment = "unknown"
+                Sentiment = "unknown",
+                Confidence = 0f
             };
 
-            // Hugging Face Spaces endpoint
-            string hfUrl = "https://hatice10-chat-emotion-ai.hf.space/call/predict";
+            // Flask API URL (Render'da deploy edilen)
+            string flaskApiUrl = "https://chat-emotion-app-1-aahh.onrender.com/analyze";
 
             try
             {
                 _logger.LogInformation("🤖 AI analizi başlatılıyor...");
 
-                var payload = new { data = new[] { message.Text } };
-                var response = await _httpClient.PostAsJsonAsync(hfUrl, payload);
+                var payload = new { text = message.Text };
+                var response = await _httpClient.PostAsJsonAsync(flaskApiUrl, payload);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(json);
 
-                    // Gradio /call endpoint'i önce event_id döner
-                    if (doc.RootElement.TryGetProperty("event_id", out var eventId))
-                    {
-                        // Sonucu almak için /call/{event_id} endpoint'ine istek at
-                        var resultUrl = $"https://hatice10-chat-emotion-ai.hf.space/call/predict/{eventId.GetString()}";
-                        var resultResponse = await _httpClient.GetAsync(resultUrl);
+                    if (doc.RootElement.TryGetProperty("sentiment", out var sentiment))
+                        message.Sentiment = sentiment.GetString() ?? "unknown";
 
-                        if (resultResponse.IsSuccessStatusCode)
-                        {
-                            var resultJson = await resultResponse.Content.ReadAsStringAsync();
-                            using var resultDoc = JsonDocument.Parse(resultJson);
+                    if (doc.RootElement.TryGetProperty("confidence", out var confidence))
+                        message.Confidence = (float)confidence.GetDouble();
 
-                            if (resultDoc.RootElement.TryGetProperty("data", out var data) && data.GetArrayLength() > 0)
-                            {
-                                message.Sentiment = data[0].GetString() ?? "unknown";
-                            }
-                        }
-                    }
-                }
-                if (response.IsSuccessStatusCode)
-                {
-                    var json = await response.Content.ReadAsStringAsync();
-                    _logger.LogInformation($"✅ AI cevabı: {json}");
-
-                    using var doc = JsonDocument.Parse(json);
-
-                    // Gradio genelde "data" array içinde cevap döner
-                    if (doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.GetArrayLength() > 0)
-                    {
-                        message.Sentiment = dataProp[0].GetString() ?? "unknown";
-                    }
+                    _logger.LogInformation($"✅ AI cevabı: Sentiment={message.Sentiment}, Confidence={message.Confidence}");
                 }
                 else
                 {
-                    _logger.LogWarning($"⚠️ AI servisi hata döndü: {response.StatusCode}");
+                    _logger.LogWarning($"⚠️ Flask API hata döndü: {response.StatusCode}");
                 }
             }
             catch (Exception aiEx)
             {
-                _logger.LogError(aiEx, "⚠️ AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
+                _logger.LogError(aiEx, "AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
             }
 
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"💾 Mesaj kaydedildi: Id={message.Id}, Sentiment={message.Sentiment}");
+            _logger.LogInformation($"Mesaj kaydedildi: Id={message.Id}, Sentiment={message.Sentiment}");
 
             return Ok(message);
         }
+
 
         // GET: api/messages
         [HttpGet]
