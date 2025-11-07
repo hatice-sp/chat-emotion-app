@@ -47,6 +47,6 @@ app.MapControllers();
 app.MapGet("/", () => "Chat Emotion Backend is running!");
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
-// Run
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
-app.Run($"http://0.0.0.0:{port}");
+app.Urls.Add($"http://0.0.0.0:{port}");
+app.Run();
