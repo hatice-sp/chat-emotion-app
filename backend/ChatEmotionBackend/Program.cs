@@ -11,19 +11,15 @@ var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "chat.db";
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
-// CORS
+// CORS - TÜM domainlere izin ver (test için)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "https://chat-emotion-app.vercel.app"
-            )
+            .AllowAnyOrigin()  // Geçici olarak herkese aç
             .AllowAnyHeader()
-            .AllowAnyMethod()
-            .AllowCredentials();
+            .AllowAnyMethod();
     });
 });
 
@@ -36,8 +32,8 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
 }
 
-// Middleware
-app.UseCors("AllowReactApp");
+// Middleware - CORS'u en başa koy
+app.UseCors("AllowAll");  // ⚠️ CORS en üstte olmalı
 app.UseAuthorization();
 app.MapControllers();
 
