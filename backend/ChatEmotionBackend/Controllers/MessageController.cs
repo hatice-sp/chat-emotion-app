@@ -45,15 +45,39 @@ namespace ChatEmotionBackend.Controllers
             };
 
             // Hugging Face Spaces endpoint
-            string hfUrl = "https://hatice10-chat-emotion-ai.hf.space/run/predict";
+            string hfUrl = "https://hatice10-chat-emotion-ai.hf.space/call/predict";
 
             try
             {
                 _logger.LogInformation("🤖 AI analizi başlatılıyor...");
 
-                // Spaces için JSON: { "data": ["mesaj"] }
-                var response = await _httpClient.PostAsJsonAsync(hfUrl, new { data = new string[] { message.Text } });
+                var payload = new { data = new[] { message.Text } };
+                var response = await _httpClient.PostAsJsonAsync(hfUrl, payload);
 
+                if (response.IsSuccessStatusCode)
+                {
+                    var json = await response.Content.ReadAsStringAsync();
+                    using var doc = JsonDocument.Parse(json);
+
+                    // Gradio /call endpoint'i önce event_id döner
+                    if (doc.RootElement.TryGetProperty("event_id", out var eventId))
+                    {
+                        // Sonucu almak için /call/{event_id} endpoint'ine istek at
+                        var resultUrl = $"https://hatice10-chat-emotion-ai.hf.space/call/predict/{eventId.GetString()}";
+                        var resultResponse = await _httpClient.GetAsync(resultUrl);
+
+                        if (resultResponse.IsSuccessStatusCode)
+                        {
+                            var resultJson = await resultResponse.Content.ReadAsStringAsync();
+                            using var resultDoc = JsonDocument.Parse(resultJson);
+
+                            if (resultDoc.RootElement.TryGetProperty("data", out var data) && data.GetArrayLength() > 0)
+                            {
+                                message.Sentiment = data[0].GetString() ?? "unknown";
+                            }
+                        }
+                    }
+                }
                 if (response.IsSuccessStatusCode)
                 {
                     var json = await response.Content.ReadAsStringAsync();
