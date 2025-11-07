@@ -10,7 +10,7 @@ using System.Linq;
 namespace ChatEmotionBackend.Controllers
 {
     [ApiController]
-    [Route("api/messages")] // ✅ Küçük harf ve çoğul
+    [Route("api/messages")]
     public class MessageController : ControllerBase
     {
         private readonly AppDbContext _context;
@@ -31,145 +31,93 @@ namespace ChatEmotionBackend.Controllers
         [HttpPost]
         public async Task<IActionResult> CreateMessage([FromBody] MessageRequest request)
         {
+            if (string.IsNullOrEmpty(request.Text) || request.UserId == 0)
+            {
+                _logger.LogWarning("❌ Geçersiz istek: Text veya UserId eksik");
+                return BadRequest(new { error = "Geçersiz mesaj veya kullanıcı." });
+            }
+
+            var message = new Message
+            {
+                UserId = request.UserId,
+                Text = request.Text,
+                Sentiment = "unknown"
+            };
+
+            // Hugging Face Spaces endpoint
+            string hfUrl = "https://hatice10-chat-emotion-ai.hf.space/run/predict";
+
             try
             {
-                if (string.IsNullOrEmpty(request.Text) || request.UserId == 0)
+                _logger.LogInformation("🤖 AI analizi başlatılıyor...");
+
+                // Spaces için JSON: { "data": ["mesaj"] }
+                var response = await _httpClient.PostAsJsonAsync(hfUrl, new { data = new string[] { message.Text } });
+
+                if (response.IsSuccessStatusCode)
                 {
-                    _logger.LogWarning("❌ Geçersiz istek: Text veya UserId eksik");
-                    return BadRequest(new { error = "Geçersiz mesaj veya kullanıcı." });
-                }
+                    var json = await response.Content.ReadAsStringAsync();
+                    _logger.LogInformation($"✅ AI cevabı: {json}");
 
-                _logger.LogInformation($"📨 Yeni mesaj: UserId={request.UserId}, Text={request.Text}");
+                    using var doc = JsonDocument.Parse(json);
 
-                var message = new Message
-                {
-                    UserId = request.UserId,
-                    Text = request.Text,
-                    Sentiment = "unknown"
-                };
-
-                // Hugging Face'e istek at
-                try
-                {
-                    _logger.LogInformation("🤖 AI analizi başlatılıyor...");
-
-                    var response = await _httpClient.PostAsJsonAsync(
-                        "https://hatice10-chat-emotion-ai.hf.space/analyze",
-                        new { text = message.Text },
-                        new System.Threading.CancellationToken()
-                    );
-
-                    if (response.IsSuccessStatusCode)
+                    // Gradio genelde "data" array içinde cevap döner
+                    if (doc.RootElement.TryGetProperty("data", out var dataProp) && dataProp.GetArrayLength() > 0)
                     {
-                        var json = await response.Content.ReadAsStringAsync();
-                        _logger.LogInformation($"✅ AI cevabı: {json}");
-
-                        using var doc = JsonDocument.Parse(json);
-
-                        if (doc.RootElement.TryGetProperty("sentiment", out var sentimentProp))
-                        {
-                            message.Sentiment = sentimentProp.GetString() ?? "unknown";
-                        }
-                    }
-                    else
-                    {
-                        _logger.LogWarning($"⚠️ AI servisi hata döndü: {response.StatusCode}");
+                        message.Sentiment = dataProp[0].GetString() ?? "unknown";
                     }
                 }
-                catch (Exception aiEx)
+                else
                 {
-                    _logger.LogError(aiEx, "⚠️ AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
+                    _logger.LogWarning($"⚠️ AI servisi hata döndü: {response.StatusCode}");
                 }
-
-                _context.Messages.Add(message);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"💾 Mesaj kaydedildi: Id={message.Id}, Sentiment={message.Sentiment}");
-
-                return Ok(message);
             }
-            catch (Exception ex)
+            catch (Exception aiEx)
             {
-                _logger.LogError(ex, "❌ Mesaj oluşturulurken kritik hata");
-                return StatusCode(500, new { error = "Mesaj gönderilemedi", details = ex.Message });
+                _logger.LogError(aiEx, "⚠️ AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
             }
+
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation($"💾 Mesaj kaydedildi: Id={message.Id}, Sentiment={message.Sentiment}");
+
+            return Ok(message);
         }
 
         // GET: api/messages
         [HttpGet]
         public IActionResult GetMessages()
         {
-            try
-            {
-                var messages = _context.Messages
-                    .OrderBy(m => m.Id)
-                    .Select(m => new
-                    {
-                        m.Id,
-                        m.UserId,
-                        m.Text,
-                        m.Sentiment,
-                        // Frontend için timestamp ekleyelim
-                        Timestamp = DateTime.UtcNow, // Gerçek timestamp için Message modeline eklenebilir
-                        Confidence = 0.75 // Frontend bunu bekliyor
-                    }).ToList();
+            var messages = _context.Messages
+                .OrderBy(m => m.Id)
+                .Select(m => new
+                {
+                    m.Id,
+                    m.UserId,
+                    m.Text,
+                    m.Sentiment,
+                    Timestamp = DateTime.UtcNow,
+                    Confidence = 0.75
+                }).ToList();
 
-                _logger.LogInformation($"✅ {messages.Count} mesaj getirildi");
-                return Ok(messages);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Mesajlar getirilirken hata");
-                return StatusCode(500, new { error = "Mesajlar yüklenemedi" });
-            }
+            return Ok(messages);
         }
 
         // DELETE: api/messages/reset
         [HttpDelete("reset")]
         public async Task<IActionResult> ResetDatabase()
         {
-            try
-            {
-                var messages = _context.Messages.ToList();
-                var count = messages.Count;
+            var messages = _context.Messages.ToList();
+            var count = messages.Count;
 
-                _context.Messages.RemoveRange(messages);
-                await _context.SaveChangesAsync();
+            _context.Messages.RemoveRange(messages);
+            await _context.SaveChangesAsync();
 
-                _logger.LogInformation($"🗑️ {count} mesaj silindi");
-                return Ok(new { message = $"Veritabanı temizlendi. {count} mesaj silindi." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Veritabanı temizlenirken hata");
-                return StatusCode(500, new { error = "Veritabanı temizlenemedi" });
-            }
-        }
-
-        // DELETE: api/messages (Tüm mesajları sil - alternatif)
-        [HttpDelete]
-        public async Task<IActionResult> DeleteAllMessages()
-        {
-            try
-            {
-                var messages = _context.Messages.ToList();
-                var count = messages.Count;
-
-                _context.Messages.RemoveRange(messages);
-                await _context.SaveChangesAsync();
-
-                _logger.LogInformation($"🗑️ {count} mesaj silindi");
-                return Ok(new { message = $"{count} mesaj silindi" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "❌ Mesajlar silinirken hata");
-                return StatusCode(500, new { error = "Mesajlar silinemedi" });
-            }
+            return Ok(new { message = $"Veritabanı temizlendi. {count} mesaj silindi." });
         }
     }
 
-    // Request DTO
     public class MessageRequest
     {
         public int UserId { get; set; }
