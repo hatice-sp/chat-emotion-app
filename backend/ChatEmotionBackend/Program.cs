@@ -19,9 +19,7 @@ builder.Services.AddCors(options =>
         policy
             .WithOrigins(
                 "http://localhost:3000",
-                "https://chat-emotion-app.vercel.app",
-                "https://chat-emotion-app-git-main-hatice10.vercel.app",
-                "http://localhost:5173"
+                "https://chat-emotion-app.vercel.app"
             )
             .AllowAnyHeader()
             .AllowAnyMethod()

@@ -33,7 +33,6 @@ namespace ChatEmotionBackend.Controllers
         {
             if (string.IsNullOrEmpty(request.Text) || request.UserId == 0)
             {
-                _logger.LogWarning(" Geçersiz istek: Text veya UserId eksik");
                 return BadRequest(new { error = "Geçersiz mesaj veya kullanıcı." });
             }
 
@@ -42,50 +41,36 @@ namespace ChatEmotionBackend.Controllers
                 UserId = request.UserId,
                 Text = request.Text,
                 Sentiment = "unknown",
-                Confidence = 0f
             };
 
-            // Flask API URL (Render'da deploy edilen)
             string flaskApiUrl = "https://chat-emotion-app-1-aahh.onrender.com/analyze";
 
             try
             {
-                _logger.LogInformation("🤖 AI analizi başlatılıyor...");
-
                 var payload = new { text = message.Text };
                 var response = await _httpClient.PostAsJsonAsync(flaskApiUrl, payload);
+                var json = await response.Content.ReadAsStringAsync();
+
+                _logger.LogInformation($"AI API response: {json}");
 
                 if (response.IsSuccessStatusCode)
                 {
-                    var json = await response.Content.ReadAsStringAsync();
                     using var doc = JsonDocument.Parse(json);
-
                     if (doc.RootElement.TryGetProperty("sentiment", out var sentiment))
                         message.Sentiment = sentiment.GetString() ?? "unknown";
 
-                    if (doc.RootElement.TryGetProperty("confidence", out var confidence))
-                        message.Confidence = (float)confidence.GetDouble();
-
-                    _logger.LogInformation($"✅ AI cevabı: Sentiment={message.Sentiment}, Confidence={message.Confidence}");
-                }
-                else
-                {
-                    _logger.LogWarning($"⚠️ Flask API hata döndü: {response.StatusCode}");
                 }
             }
-            catch (Exception aiEx)
+            catch (Exception ex)
             {
-                _logger.LogError(aiEx, "AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
+                _logger.LogError(ex, "AI analizi hatası - mesaj 'unknown' sentiment ile kaydedilecek");
             }
 
             _context.Messages.Add(message);
             await _context.SaveChangesAsync();
 
-            _logger.LogInformation($"Mesaj kaydedildi: Id={message.Id}, Sentiment={message.Sentiment}");
-
             return Ok(message);
         }
-
 
         // GET: api/messages
         [HttpGet]
@@ -99,8 +84,7 @@ namespace ChatEmotionBackend.Controllers
                     m.UserId,
                     m.Text,
                     m.Sentiment,
-                    Timestamp = DateTime.UtcNow,
-                    Confidence = 0.75
+                    Timestamp = DateTime.UtcNow
                 }).ToList();
 
             return Ok(messages);
