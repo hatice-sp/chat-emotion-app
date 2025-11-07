@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Services
 builder.Services.AddControllers();
 builder.Services.AddHttpClient();
 
@@ -10,6 +11,7 @@ var dbPath = Environment.GetEnvironmentVariable("DB_PATH") ?? "chat.db";
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 
+// CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
@@ -28,17 +30,23 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+// Ensure database
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
 }
 
+// Middleware
 app.UseCors("AllowReactApp");
 app.UseAuthorization();
 app.MapControllers();
 
+// Health & Root endpoint
+app.MapGet("/", () => "Chat Emotion Backend is running!");
 app.MapGet("/health", () => Results.Ok(new { status = "healthy", timestamp = DateTime.UtcNow }));
 
+// Run
 var port = Environment.GetEnvironmentVariable("PORT") ?? "8080";
 app.Run($"http://0.0.0.0:{port}");

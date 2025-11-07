@@ -1,21 +1,19 @@
+# Base image
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:${PORT:-8080}
+
 # Build image
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
-WORKDIR /source
-
-# Restore dependencies
+WORKDIR /src
 COPY *.csproj .
-RUN dotnet restore
-
-# Copy everything and publish
+RUN dotnet restore "ChatEmotionBackend.csproj"
 COPY . .
-RUN dotnet publish -c Release -o /app
+RUN dotnet publish "ChatEmotionBackend.csproj" -c Release -o /app/publish
 
-# Runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Final image
+FROM base AS final
 WORKDIR /app
-COPY --from=build /app .
-ENV DOTNET_RUNNING_IN_CONTAINER=true
-ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
-ENV ASPNETCORE_URLS=http://+:8080
-EXPOSE 8080
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "ChatEmotionBackend.dll"]
